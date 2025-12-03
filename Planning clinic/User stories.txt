@@ -1,0 +1,25 @@
+1. User Authentication
+As a user, I want to sign in with my credentials so I can access the app.
+As a user, I want to log out securely.
+
+
+2. Admin stories
+
+As an admin, I want to edit or remove doctors and nurses.
+As a admin, I want to see all statistics at clinic, doctors, nurses, patients.
+As an admin, I want to see statistics over a chosen period (daily, weekly, monthly).
+
+3. Nurse stories
+
+As a nurse, I want to update patient information if it changes.
+As a nurse, I want to cancel or reschedule appointments.
+As a nurse, I want to see the schedule of doctors for better planning.
+As a nurse, I want to filter patients by condition, doctor, or appointment date.
+ 
+4. Doctor stories
+As a doctor, I want to see patient appointment and report history
+As a doctor, I want to see my all patients.
+As a doctor, I want to have nice page for writing reports.
+As a doctor, I want to edit or finalize patient reports.
+
+
