@@ -5,7 +5,7 @@ from .models import User, Patient, Appointment, Report
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Basic serializer for doctors, nurses, and admin users."""
+    
     class Meta:
         model = User
         fields = ["id", "email", "first_name", "last_name", "role", "specialization"]
@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    """Used by app-admin in React UI to create new doctors / nurses / admin users."""
+    
     password = serializers.CharField(write_only=True, min_length=6)
 
     class Meta:
@@ -21,7 +21,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ["email", "first_name", "last_name", "role", "specialization", "password"]
 
     def validate_role(self, value):
-        """App admin can create only DOCTOR or NURSE or ADMIN — no Superuser."""
+        
         if value not in ["ADMIN", "DOCTOR", "NURSE"]:
             raise serializers.ValidationError("Invalid role.")
         return value
@@ -113,22 +113,57 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 class ReportSerializer(serializers.ModelSerializer):
     appointment_id = serializers.IntegerField(write_only=True)
+    nurse_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Report
-        fields = ["id", "appointment_id", "diagnosis", "created_at"]
-        read_only_fields = ["id", "created_at"]
+        fields = [
+            "id",
+            "appointment_id",
+            "diagnosis",
+            "nurse_id",
+            "doctor",
+            "patient",
+            "created_at",
+        ]
+        read_only_fields = ["id", "doctor", "patient", "created_at"]
 
     def validate_appointment_id(self, value):
-        app = Appointment.objects.get(id=value)
-        if self.context["request"].user.role != "DOCTOR":
-            raise serializers.ValidationError("Only doctors can write reports.")
+     
+        try:
+            appointment = Appointment.objects.get(id=value)
+        except Appointment.DoesNotExist:
+            raise serializers.ValidationError("Appointment does not exist.")
+
+        request_user = self.context["request"].user
+
+        if request_user.role != "DOCTOR":
+            raise serializers.ValidationError("Only doctors can create reports.")
+
+        
+        if appointment.doctor != request_user:
+            raise serializers.ValidationError("You can only write reports for your own appointments.")
+
+       
+        if hasattr(appointment, "report"):
+            raise serializers.ValidationError("This appointment already has a report.")
+
         return value
 
     def create(self, validated_data):
         appointment = Appointment.objects.get(id=validated_data.pop("appointment_id"))
+
+        nurse_id = validated_data.pop("nurse_id", None)
+        nurse = None
+        if nurse_id:
+            nurse = User.objects.get(id=nurse_id, role="NURSE")
+
         report = Report.objects.create(
             appointment=appointment,
+            doctor=self.context["request"].user,
+            patient=appointment.patient,
+            nurse=nurse,
             **validated_data
         )
+
         return report

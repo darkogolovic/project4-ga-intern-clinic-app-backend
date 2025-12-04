@@ -134,16 +134,34 @@ class Appointment(models.Model):
         return f"{self.patient} - {self.date_time}"
 
 class Report(models.Model):
-    appointment = models.OneToOneField(
-        Appointment,
+    patient = models.ForeignKey(
+        Patient,
         on_delete=models.CASCADE,
-        related_name="report"
+        related_name="reports"
     )
 
+    doctor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "DOCTOR"},
+        related_name="doctor_reports"
+    )
+
+    nurse = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"role": "NURSE"},
+        related_name="nurse_reports"
+    )
+
+   
     diagnosis = models.TextField()
+    appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name="report",null = True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Report for {self.appointment.patient} ({self.created_at.date()})"
-
+        return f"Report for {self.patient} ({self.created_at.date()})"
 
