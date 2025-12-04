@@ -84,7 +84,6 @@ class ReportViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        if self.request.user.role != "DOCTOR":
-            raise PermissionDenied("Only doctors can create reports.")
-        serializer.save(doctor=self.request.user)
+        
+        serializer.save()
 

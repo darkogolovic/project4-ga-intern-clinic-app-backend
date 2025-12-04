@@ -112,12 +112,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
 
 class ReportSerializer(serializers.ModelSerializer):
-    appointment = AppointmentSerializer(read_only=True)
     appointment_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Report
-        fields = ["id", "appointment", "appointment_id", "description", "created_at"]
+        fields = ["id", "appointment_id", "diagnosis", "created_at"]
         read_only_fields = ["id", "created_at"]
 
     def validate_appointment_id(self, value):
