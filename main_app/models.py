@@ -65,10 +65,11 @@ class Patient(models.Model):
 
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-
+    date_of_birth = models.DateField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=50, blank=True, null=True)
     address = models.CharField(max_length=200, blank=True, null=True)
+    medical_history = models.TextField(blank=True, null=True)
 
     doctor = models.ForeignKey(
         User,

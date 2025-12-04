@@ -1,4 +1,4 @@
-from rest import serializers
+from rest_framework import serializers
 from .models import User, Patient, Appointment, Report
 
 
@@ -33,11 +33,15 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+class AvailableDoctorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'specialization']
+
 
 
 
 class PatientSerializer(serializers.ModelSerializer):
-    created_by = UserSerializer(read_only=True)
 
     class Meta:
         model = Patient
@@ -46,22 +50,17 @@ class PatientSerializer(serializers.ModelSerializer):
             "first_name", "last_name",
             "date_of_birth",
             "gender",
-            "phone_number",
+            "phone",
             "address",
             "medical_history",
-            "created_by",
             "created_at",
         ]
-        read_only_fields = ["id", "created_by", "created_at"]
+        read_only_fields = ["id", "created_at"]
 
 
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    doctor = UserSerializer(read_only=True)
-    nurse = UserSerializer(read_only=True)
-    patient = PatientSerializer(read_only=True)
-
     doctor_id = serializers.IntegerField(write_only=True)
     nurse_id = serializers.IntegerField(write_only=True)
     patient_id = serializers.IntegerField(write_only=True)
@@ -72,24 +71,29 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "id",
             "doctor", "nurse", "patient",
             "doctor_id", "nurse_id", "patient_id",
-            "date",
-            "start_time",
-            "end_time",
-            "notes",
+            "date_time",
+            "status",
+            
         ]
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "doctor", "nurse", "patient"]
 
-    def validate_doctor_id(self, value):
-        user = User.objects.get(id=value)
-        if user.role != "DOCTOR":
-            raise serializers.ValidationError("Selected user is not a doctor.")
-        return value
+    def validate(self, attrs):
+        doctor_id = attrs.get('doctor_id')
+        date_time = attrs.get('date_time')
 
-    def validate_nurse_id(self, value):
-        user = User.objects.get(id=value)
-        if user.role != "NURSE":
-            raise serializers.ValidationError("Selected user is not a nurse.")
-        return value
+       
+        if not (8 <= date_time.hour < 20):
+            raise serializers.ValidationError("Appointment must be between 08:00 and 20:00.")
+
+       
+        if Appointment.objects.filter(
+            doctor_id=doctor_id,
+            date_time=date_time,
+            status="scheduled"
+        ).exists():
+            raise serializers.ValidationError("Doctor already has an appointment at this time.")
+
+        return attrs
 
     def create(self, validated_data):
         doctor = User.objects.get(id=validated_data.pop("doctor_id"))
