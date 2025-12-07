@@ -10,8 +10,11 @@ from .serializers import (
     PatientSerializer,
     AppointmentSerializer,
     ReportSerializer,
-    AvailableDoctorSerializer
+    AvailableDoctorSerializer,
+    MyTokenObtainPairSerializer
 )
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -26,6 +29,9 @@ class UserViewSet(viewsets.ModelViewSet):
             if not self.request.user.is_authenticated or self.request.user.role != 'ADMIN':
                 raise PermissionDenied("Only admin can modify users.")
         return [permissions.IsAuthenticated()]
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
 
 class AvailableDoctorsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -87,3 +93,9 @@ class ReportViewSet(viewsets.ModelViewSet):
         
         serializer.save()
 
+class MeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)

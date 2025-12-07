@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Patient, Appointment, Report
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 
@@ -11,6 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["id", "email", "first_name", "last_name", "role", "specialization"]
         read_only_fields = ["id", "email"]
 
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['user'] = UserSerializer(self.user).data
+        return data
 
 class UserCreateSerializer(serializers.ModelSerializer):
     
