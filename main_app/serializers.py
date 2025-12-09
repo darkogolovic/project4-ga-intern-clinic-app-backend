@@ -71,6 +71,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     doctor_id = serializers.IntegerField(write_only=True)
     nurse_id = serializers.IntegerField(write_only=True)
     patient_id = serializers.IntegerField(write_only=True)
+    report_id = serializers.IntegerField(source="report.id", read_only=True)
 
     class Meta:
         model = Appointment
@@ -80,9 +81,14 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "doctor_id", "nurse_id", "patient_id",
             "date_time",
             "status",
+            "report_id"
             
+
         ]
-        read_only_fields = ["id", "doctor", "nurse", "patient"]
+        read_only_fields = ["id", "doctor", "nurse", "patient","report_id"]
+
+    def get_has_report(self, obj):
+        return hasattr(obj, "report")
 
     def validate(self, attrs):
         doctor_id = attrs.get('doctor_id')
@@ -130,10 +136,11 @@ class ReportSerializer(serializers.ModelSerializer):
             "diagnosis",
             "nurse_id",
             "doctor",
+            "nurse",
             "patient",
             "created_at",
         ]
-        read_only_fields = ["id", "doctor", "patient", "created_at"]
+        read_only_fields = ["id", "doctor", "patient", "nurse","created_at"]
 
     def validate_appointment_id(self, value):
      
@@ -172,5 +179,7 @@ class ReportSerializer(serializers.ModelSerializer):
             nurse=nurse,
             **validated_data
         )
+        appointment.status = Appointment.Status.COMPLETED  
+        appointment.save(update_fields=["status"])
 
         return report

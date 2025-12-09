@@ -28,8 +28,7 @@ urlpatterns = [
         AvailableDoctorSlotsView.as_view(),
         name='available-slots',
     ),
-
-    # VAŽNO: router URLs NA KRAJU
+    
     path('api/', include(router.urls)),
 ]
 

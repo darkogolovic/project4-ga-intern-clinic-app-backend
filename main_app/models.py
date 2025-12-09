@@ -101,7 +101,9 @@ class Appointment(models.Model):
     patient = models.ForeignKey(
         Patient,
         on_delete=models.CASCADE,
-        related_name="appointments"
+        related_name="appointments",
+        null=True,
+        blank = True
     )
 
     doctor = models.ForeignKey(
@@ -127,6 +129,7 @@ class Appointment(models.Model):
         choices=Status.choices,
         default=Status.SCHEDULED
     )
+    
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -137,7 +140,9 @@ class Report(models.Model):
     patient = models.ForeignKey(
         Patient,
         on_delete=models.CASCADE,
-        related_name="reports"
+        related_name="reports",
+        null=True,
+        blank = True
     )
 
     doctor = models.ForeignKey(
