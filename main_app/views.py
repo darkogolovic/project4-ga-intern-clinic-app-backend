@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions,status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,6 +14,7 @@ from .serializers import (
     MyTokenObtainPairSerializer
 )
 from rest_framework_simplejwt.views import TokenObtainPairView
+from datetime import datetime, time, timedelta
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -99,3 +100,52 @@ class MeView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+class AvailableDoctorSlotsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        doctor_id = request.query_params.get("doctor_id")
+        date_str = request.query_params.get("date")
+
+        if not doctor_id or not date_str:
+            return Response(
+                {"error": "doctor_id i date su obavezni query parametri"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            doctor = User.objects.get(id=doctor_id, role="DOCTOR")
+        except User.DoesNotExist:
+            return Response(
+                {"error": "Doktor ne postoji"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        try:
+            target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return Response(
+                {"error": "Pogrešan format datuma. Koristi YYYY-MM-DD."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        existing = Appointment.objects.filter(
+            doctor=doctor,
+            date_time__date=target_date,
+            status=Appointment.Status.SCHEDULED,
+        ).values_list("date_time", flat=True)
+
+        taken_times = {dt.time() for dt in existing}
+
+        start = time(8, 0)
+        end = time(20, 0)
+        current_dt = datetime.combine(target_date, start)
+
+        slots = []
+        while current_dt.time() < end:
+            if current_dt.time() not in taken_times:
+                slots.append(current_dt.strftime("%H:%M"))
+            current_dt += timedelta(minutes=30)
+
+        return Response(slots, status=status.HTTP_200_OK)

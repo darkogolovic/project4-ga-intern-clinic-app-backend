@@ -59,6 +59,7 @@ class PatientSerializer(serializers.ModelSerializer):
             "phone",
             "address",
             "medical_history",
+            "doctor",
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]
