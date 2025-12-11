@@ -117,7 +117,7 @@ SIMPLE_JWT = {
 
 
 
-WSGI_APPLICATION = 'clinic.wsgi.application'
+WSGI_APPLICATION = "clinic.wsgi.application"
 
 
 # Database
