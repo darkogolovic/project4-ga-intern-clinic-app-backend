@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+def root(request):
+    return JsonResponse({"status": "ok", "message": "Backend is running!"})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
