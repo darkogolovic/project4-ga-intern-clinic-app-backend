@@ -42,7 +42,7 @@ DEBUG = False
 
 
 ALLOWED_HOSTS = [
-    "clinic-f2fdc2951f89.herokuapp.com/", 
+    "clinic-f2fdc2951f89.herokuapp.com", 
     "localhost", 
     "127.0.0.1"
 ]
